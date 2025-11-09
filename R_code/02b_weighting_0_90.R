@@ -51,7 +51,7 @@ long_trt_0_90 <- trt_0_90_with_cens %>%
       start_interval == 0 & Cens_followup <= 90 ~ Cens_followup,
       
       start_interval == 90 & Cens_nostart == 1 ~ 0,
-      start_interval == 90 & Cens_nostart == 0 & Cens_followup > 180 ~ 150,
+      start_interval == 90 & Cens_nostart == 0 & Cens_followup > 180 ~ 150, #(GP) dovrebbe essere 90!! perchè 180-90=90 
       start_interval == 90 & Cens_nostart == 0 & Cens_followup <= 180 ~ Cens_followup - 90
       ),
     
