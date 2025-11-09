@@ -1,13 +1,10 @@
-
-
-getwd()
-setwd("/Users/yili/Desktop/Michael CCW project")
-
 library(tidyverse)
 library(haven)
+if (!requireNamespace("vetr", quietly = TRUE)) {install.packages("vetr")}
 library(vetr)
+library(here)
 
-baseccwcohort <- read_sas("baseccwcohort.sas7bdat")
+baseccwcohort <- read_sas(here("Data","baseccwcohort.sas7bdat"))
 
 
 ###### CLONING #####
@@ -120,10 +117,10 @@ notrt_with_cens <- notrt %>%
     )
 
 
-write_csv(trt_0_30_with_cens, "R/trt_0_30_with_cens.csv")
-write_csv(trt_0_90_with_cens, "R/trt_0_90_with_cens.csv")
-write_csv(trt_30_90_with_cens, "R/trt_30_90_with_cens.csv")
-write_csv(notrt_with_cens, "R/notrt_with_cens.csv")
+write_csv(trt_0_30_with_cens, "Data/trt_0_30_with_cens.csv")
+write_csv(trt_0_90_with_cens, "Data/trt_0_90_with_cens.csv")
+write_csv(trt_30_90_with_cens, "Data/trt_30_90_with_cens.csv")
+write_csv(notrt_with_cens, "Data/notrt_with_cens.csv")
 
 
 
