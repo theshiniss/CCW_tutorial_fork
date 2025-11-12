@@ -313,8 +313,8 @@ zeros_30_90 <- weights_trt_30_90_cumulativeIPCW %>%
 nrow(zeros_30_90) # 928
 
 
-save(wted_trt_30_90, file = "Stored_data/wted_trt_30_90.Rdata")
-save(zeros_30_90, file = "Stored_data/zeros_30_90.Rdata")
+save(wted_trt_30_90, file = "Data/wted_trt_30_90.Rdata")
+save(zeros_30_90, file = "Data/zeros_30_90.Rdata")
 
  
 #Differenze rispetto agli atri due script per il weighting (0-30, 0-90)
