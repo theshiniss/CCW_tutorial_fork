@@ -57,7 +57,7 @@ long_trt_0_30 <- trt_0_30_with_cens %>%
       start_interval == 0 & Cens_followup <= 30 ~ Cens_followup,
       
       start_interval == 30 & Cens_nostart == 1 ~ 0,
-      start_interval == 30 & Cens_nostart == 0 & Cens_followup > 180 ~ 150,                 #(GP) dovrebbe essere 180? vedi riga sotto sarebbe 180-30. ma perchè?
+      start_interval == 30 & Cens_nostart == 0 & Cens_followup > 180 ~ 150,                 #(GP) sarebbe 180-30, durata intervallo
       start_interval == 30 & Cens_nostart == 0 & Cens_followup <= 180 ~ Cens_followup - 30  #(GP) 
       ),
     

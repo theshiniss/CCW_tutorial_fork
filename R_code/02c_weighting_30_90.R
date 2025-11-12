@@ -1,12 +1,12 @@
 
-getwd()
-setwd("/Users/yili/Desktop/Michael CCW project")
+
 
 library(tidyverse)
 library(haven)
 library(lubridate)
 
-trt_30_90_with_cens <- read.csv("~/Desktop/Michael CCW project/R/trt_30_90_with_cens.csv")
+trt_30_90_with_cens <- read.csv(here("Data","trt_30_90_with_cens.csv"))
+
 
 ### CENSORING WEIGHTS FOR THE 30-90 DAY WINDOW
   
@@ -15,13 +15,13 @@ trt_30_90_with_cens <- read.csv("~/Desktop/Michael CCW project/R/trt_30_90_with_
 
 # This set has three forms of censoring: 
 # 1) general loss to follow-up
-# 2) censoring because patients starting taking medications from day 0 to 30 (Cens_startearly = 1)
-# 3) censoring because patients did not start taking medications by day 90 (cens_nostart = 1)
+# 2) censoring because patients starting taking medications from day 0 to 30 (Cens_startearly = 1) #(GP) Censura 1: Chi inizia PRIMA del giorno 30 viene censurato (evento si verifica troppo presto)
+# 3) censoring because patients did not start taking medications by day 90 (cens_nostart = 1) #(GP) Censura 2: Chi NON inizia entro il giorno 90 viene censurato (si verifica troppo tardi)
 
 # We will be assuming that general loss to follow-up is random, meaning we only 
 # have potential selection bias from "Cens_startearly = 1" before day 30 and "cens_nostart=1" at day 90.
 
-# Before doing anything, we need to deal with the day 0 censoring.
+# Before doing anything, we need to deal with the day 0 censoring.  #(GP) nuova censura al tempo 0: Rimuove chi è censurato al giorno 0 (da valutare le condizioni che escludono dal follow-up)
 model_t0_uncens <- glm(
   t0cens30_90 ~ baseline_age + sex + renal, 
   family = binomial(link = "logit"), 
@@ -49,15 +49,15 @@ trt_30_90_with_cens_no_0_fu <- trt_30_90_t0_uncens %>%
 # starting early or not starting, and then a final interval from day 90 to 180 
 # where we deal with the censoring from cens_nostart = 1.
 
-
+#(GP) 32 intervalli potenziali per paziente
 
 ### start_interval = c(0:29) ### 
 long_trt_30_90_first30days <- trt_30_90_with_cens_no_0_fu %>%
   mutate(discharge_date = as.Date(Discharge_date, format = "%Y-%m-%d")) %>%
   
   # Generate observations covering the first 30 days, 1 day/row
-  crossing(start_interval = c(0:29)) %>% 
-  
+  crossing(start_interval = c(0:29)) %>% #(GP) 30 intervalli di 1 giorno per  monitorare ogni giorno se il paziente inizia il trattamento (quindi censura)
+                                         #(GP) si possono applicare pesi IPCW cumulativi giorno per giorno in questo intervallo
   # Calculate the new date for each interval
   mutate(date = discharge_date + start_interval) %>%
   
@@ -216,8 +216,8 @@ nrow(day_90_plus_not_recent) # 253
 
 
 first_30_model <- glm(
-  long_cens_startearly ~ intv_age + sex + renal + start_interval + I(start_interval^2), 
-  data = first_30_days, 
+  long_cens_startearly ~ intv_age + sex + renal + start_interval + I(start_interval^2),  #GP: P(essere censurato per inizio precoce | età, sesso, comorbidità, giorno)
+  data = first_30_days,                                                                  #GP: Include start_interval e start_interval^2 termine quadratico perchè il rischio di iniziare varia nel tempo
   family = binomial(link = "logit")
   ) 
 
@@ -232,14 +232,14 @@ first_30_IPCW <- first_30_days %>%
 # In the second data set, everyone's person-time gets an interval weight of 1
 # because no one is censored by design during this interval.
 day_30_to_90_IPCW <- day_30_to_90 %>%
-  mutate(Interval_IPCW = 1)
+  mutate(Interval_IPCW = 1) #(GP)Peso = 1 (nessuna censura artificiale in questo intervallo)
 
 
 day_90_plus_filtered <- day_90_plus %>%
   filter(recentstart == 1)
 
 # Fit the logistic regression model
-day_90_plus_model <- glm(
+day_90_plus_model <- glm( #(GP) Identico alla strategia 0-90 per l'ultimo intervallo.
   long_cens_nostart ~ intv_age + sex + renal,
   data = day_90_plus_filtered,
   family = binomial(link = "logit")
@@ -264,7 +264,7 @@ day_90_plus_interval_IPCW <- day_90_plus_filtered %>%
   )
 nrow(day_90_plus_interval_IPCW)
 
-# And finally we can calculate our cumulative IPCW
+# And finally we can calculate our cumulative IPCW      #(GP)PESI CUMULATIVI
 weights_trt_30_90 <- bind_rows(first_30_IPCW, 
                                day_30_to_90_IPCW, 
                                day_90_plus_interval_IPCW) %>%
@@ -280,13 +280,13 @@ weights_trt_30_90_cumulativeIPCW <- weights_trt_30_90 %>%
   group_by(ID) %>%
   mutate(
     Cumulative_IPCW = {
-      cum_ipcw <- t0IPCW[1] * Interval_IPCW[1]
+      cum_ipcw <- t0IPCW[1] * Interval_IPCW[1] #(GP) # Inizia con peso t0
       out <- numeric(n())  # Preallocate space
       out[1] <- cum_ipcw
       
       if (n() > 1) {
         for (i in 2:n()) {
-          out[i] <- Interval_IPCW[i] * out[i - 1]
+          out[i] <- Interval_IPCW[i] * out[i - 1] #(GP) moltiplica peso corrente {i} × peso cumulativo precedente{i-1}
         }
       }
       out
@@ -317,4 +317,12 @@ save(wted_trt_30_90, file = "Stored_data/wted_trt_30_90.Rdata")
 save(zeros_30_90, file = "Stored_data/zeros_30_90.Rdata")
 
  
+#Differenze rispetto agli atri due script per il weighting (0-30, 0-90)
+# aggiunto peso al t0 per censura immediata
+# costruiti 30 intervalli giornalieri (0-29) invece di 1 intervallo + altri intervalli
+# 3 modelli IPCW invece di 1
+# pesi cumulativi moltiplicativi
+# doppia censura: presto (0-30) e tardi (90+)
+# flag long_cens_startearly oltre a long_cens_nostart
 
+#mentre si mantiene la logica dei recent starters e intervallo 30-90 ha peso 1
