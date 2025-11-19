@@ -1,11 +1,11 @@
 
 getwd()
-setwd("/Users/yili/Desktop/Michael CCW project")
+#setwd("/Users/yili/Desktop/Michael CCW project")
 
 library(tidyverse)
 library(haven)
 
-trt_0_90_with_cens <- read.csv("~/Desktop/Michael CCW project/R/trt_0_90_with_cens.csv")
+trt_0_90_with_cens <- read.csv(here("Data","trt_0_90_with_cens.csv")) #(GP) change the path
 
 
 long_trt_0_90 <- trt_0_90_with_cens %>%
@@ -26,7 +26,7 @@ long_trt_0_90 <- trt_0_90_with_cens %>%
   filter(!(Cens_followup <= 90 & Cens_nostart == 0 & start_interval == 90)) %>% 
   
   mutate(date = discharge_date + start_interval,  
-    intv_age = as.integer(difftime(date, birthdate, units = "days") / 365.25),  
+    intv_age = as.integer(difftime(date, as.Date(birthdate, format = "%Y-%m-%d"), units = "days") / 365.25),  #GP modificato il formato data altrimenti errore
     
     long_outcome = case_when(
       start_interval == 0 & Cens_followup > 90 ~ 0,
@@ -129,5 +129,5 @@ zeros_0_90 <- combined_data %>%
   filter(Cumulative_IPCW == 0)  
 
 
-save(wted_trt_0_90, file = "Stored_data/wted_trt_0_90.Rdata")
-save(zeros_0_90, file = "Stored_data/zeros_0_90.Rdata")
+save(wted_trt_0_90, file = "Data/wted_trt_0_90.Rdata")
+save(zeros_0_90, file = "Data/zeros_0_90.Rdata")
