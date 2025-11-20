@@ -119,10 +119,10 @@ notrt_with_cens <- notrt %>%
     )
 
 
-write_csv(trt_0_30_with_cens, "R/trt_0_30_with_cens.csv")
-write_csv(trt_0_90_with_cens, "R/trt_0_90_with_cens.csv")
-write_csv(trt_30_90_with_cens, "R/trt_30_90_with_cens.csv")
-write_csv(notrt_with_cens, "R/notrt_with_cens.csv")
+trt_0_30_with_cens |> write_csv(here("R","trt_0_30_with_cens.csv"))
+trt_0_90_with_cens |> write_csv(here("R","trt_0_90_with_cens.csv"))
+trt_30_90_with_cens |> write_csv(here("R","trt_30_90_with_cens.csv"))
+notrt_with_cens |> write_csv(here("R","notrt_with_cens.csv"))
 
 
 
