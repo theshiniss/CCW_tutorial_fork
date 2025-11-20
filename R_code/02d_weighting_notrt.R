@@ -1,13 +1,12 @@
 
 getwd()
-setwd("/Users/yili/Desktop/Michael CCW project")
+
 
 library(tidyverse)
 library(haven)
 library(broom)
 
-notrt_with_cens <- read.csv("~/Desktop/Michael CCW project/R/notrt_with_cens.csv")
-
+notrt_with_cens <- read.csv(here("Data","notrt_with_cens.csv"))
 
 # CENSORING WEIGHTS FOR THE "UNTREATED" ARM
   
@@ -57,7 +56,7 @@ long_notrt <- notrt_with_cens_no_0_fu %>%
   unnest_longer(start_interval) %>%
   
   mutate(date = discharge_date + start_interval,
-    intv_age = as.integer(difftime(date, birthdate, units = "days") / 365.25),  
+    intv_age = as.integer(difftime(date, as.Date(birthdate, format = "%Y-%m-%d"), units = "days") / 365.25),  
     
     long_outcome = case_when(
       Cens_followup > (start_interval + 10) ~ 0,

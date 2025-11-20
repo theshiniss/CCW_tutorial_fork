@@ -68,7 +68,7 @@ long_trt_30_90_first30days <- trt_30_90_with_cens_no_0_fu %>%
   filter(!start_interval > Cens_followup) %>% 
   
   mutate(date = discharge_date + start_interval,  
-    intv_age = as.integer(difftime(date, birthdate, units = "days") / 365.25),  
+    intv_age = as.integer(difftime(date, as.Date(birthdate, format = "%Y-%m-%d"), units = "days") / 365.25),  
     
     long_cens_nostart = 0, # No one in this time interval can be censored for not starting treatment 
 
@@ -110,7 +110,7 @@ long_trt_30_90_interval30 <- trt_30_90_with_cens_no_0_fu %>%
   crossing(start_interval = 30) %>% 
 
   mutate(date = discharge_date + start_interval,  
-         intv_age = as.integer(difftime(date, birthdate, units = "days") / 365.25),  
+         intv_age = as.integer(difftime(date, as.Date(birthdate, format = "%Y-%m-%d"), units = "days") / 365.25),  
          
          long_cens_startearly = 0, 
          long_cens_nostart = 0,
@@ -138,7 +138,7 @@ long_trt_30_90_interval90 <- trt_30_90_with_cens_no_0_fu %>%
   mutate(discharge_date = as.Date(Discharge_date, format = "%Y-%m-%d")) %>% 
   crossing(start_interval = 90) %>% 
   mutate(date = discharge_date + start_interval,  
-         intv_age = as.integer(difftime(date, birthdate, units = "days") / 365.25),  
+         intv_age = as.integer(difftime(date, as.Date(birthdate, format = "%Y-%m-%d"), units = "days") / 365.25),  
          
          long_cens_startearly = 0, # No observations are getting censored for starting early at this point
 
